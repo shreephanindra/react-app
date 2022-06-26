@@ -1,0 +1,40 @@
+version: '3'
+services:
+  database:
+    image: 'mongo:latest'
+    container_name: 'db'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=inventory_db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+  server:
+    image: node:10.15.0
+    container_name: myapp-node-server
+    command: sh -c "ls &&
+                    npm install &&
+                    cd views &&
+                    npm install &&
+                    cd .. &&
+                    npm run dev
+                    "
+    working_dir: /usr/app
+    volumes:
+      - .:/usr/app
+    ports:
+      - "5000:5000"
+      - "3000:3000"
+    depends_on:
+      - database
+    environment:
+      - DB_URI=mongodb://root:password@127.0.0.1:27017/inventory_db
+      - NODE_ENV=development
+    networks:
+      - app-network
+
+networks:
+    app-network:
+        driver: bridge
